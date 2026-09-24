@@ -28,6 +28,21 @@ Sin clave, la pestaña Facturas funciona entera y el Asistente avisa de que falt
 
 Opcional en `.env`: `MODELO` (por defecto `claude-opus-5`) y `PUERTO` (por defecto 5050).
 
+## Versión online (Netlify)
+
+La misma demo está publicada en **https://montelier-demo-astra.netlify.app**, protegida con una
+contraseña (variable `DEMO_CLAVE` en Netlify).
+
+- Netlify no ejecuta Python, así que la versión online tiene el servidor en JavaScript
+  (`netlify/`) con la misma lógica: misma base de ejemplo (`datos_ejemplo.json`), base en solo
+  lectura, IVA calculado en el código y las mismas herramientas. La interfaz (`static/`) es la misma.
+- La clave de Anthropic va en la variable de entorno `CLAVE_ANTHROPIC` del sitio en Netlify
+  (Project configuration → Environment variables). Sin ella se usa el AI Gateway de Netlify,
+  que tiene límites de uso.
+- El estado de la pestaña Facturas se guarda en Netlify Blobs, no en la base.
+- Pruebas de la versión online: `npm install && npm test`.
+- Para volver a publicar: `npx netlify deploy --build --prod`.
+
 ## Datos de ejemplo
 
 `crear_base.py` genera `datos/montelier.db` con 12 clientes (Barcelona y Tarragona),

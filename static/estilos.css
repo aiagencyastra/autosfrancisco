@@ -237,3 +237,13 @@ main { flex: 1; min-height: 0; }
   .pestana { padding: 8px 12px; }
   .logo { font-size: 16px; letter-spacing: .1em; }
 }
+
+/* ---------------------------------------------------------------- contraseña (versión online) */
+.entrar {
+  width: 320px; background: #fff; border-radius: 16px; padding: 28px; display: grid; gap: 14px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3); justify-items: start;
+}
+.entrar p { margin: 0; color: var(--gris); font-size: 14px; }
+.entrar input { width: 100%; border: 1px solid var(--linea); border-radius: 10px; padding: 11px 14px; font-size: 15px; }
+.entrar .boton { width: 100%; }
+.entrar-error { color: var(--no) !important; }

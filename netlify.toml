@@ -1,0 +1,17 @@
+# Versión online de la demo (Netlify). La versión local sigue siendo ./arrancar.sh
+[build]
+  publish = "static"
+  command = "npm test"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+# La interfaz pide /static/... como en la versión local
+[[redirects]]
+  from = "/static/*"
+  to = "/:splat"
+  status = 200

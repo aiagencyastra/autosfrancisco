@@ -1,0 +1,431 @@
+{
+ "clientes": [
+  {
+   "nombre": "Interiorismo Blau SL",
+   "email": "administracion@interiorismoblau.es",
+   "telefono": "932 145 870",
+   "direccion": "C/ de Provença 214, 08036 Barcelona"
+  },
+  {
+   "nombre": "Hotel Costa Daurada SA",
+   "email": "compras@hotelcostadaurada.es",
+   "telefono": "977 381 225",
+   "direccion": "Passeig de Jaume I 32, 43840 Salou (Tarragona)"
+  },
+  {
+   "nombre": "Oficinas Diagonal Coworking SL",
+   "email": "facturas@diagonalcowork.es",
+   "telefono": "934 102 336",
+   "direccion": "Av. Diagonal 480, 08006 Barcelona"
+  },
+  {
+   "nombre": "Clínica Dental Sant Gervasi SLP",
+   "email": "gestion@dentalsantgervasi.es",
+   "telefono": "932 117 904",
+   "direccion": "C/ de Muntaner 390, 08021 Barcelona"
+  },
+  {
+   "nombre": "Restaurante El Serrallo SL",
+   "email": "info@restaurantserrallo.es",
+   "telefono": "977 240 518",
+   "direccion": "Moll de Pescadors 12, 43004 Tarragona"
+  },
+  {
+   "nombre": "Escola Bressol Els Pins SCCL",
+   "email": "direccio@bressolelspins.cat",
+   "telefono": "977 315 662",
+   "direccion": "C/ de Sant Joan 18, 43201 Reus (Tarragona)"
+  },
+  {
+   "nombre": "Logística Camp de Tarragona SL",
+   "email": "operaciones@logisticacamp.es",
+   "telefono": "977 552 190",
+   "direccion": "Pol. Ind. Riu Clar, C/ del Coure 5, 43006 Tarragona"
+  },
+  {
+   "nombre": "Galería Arte Born SL",
+   "email": "hola@galeriaborn.es",
+   "telefono": "933 196 427",
+   "direccion": "C/ del Rec 44, 08003 Barcelona"
+  },
+  {
+   "nombre": "Marta Puig Soler",
+   "email": "marta.puig.soler@correo.es",
+   "telefono": "654 218 903",
+   "direccion": "C/ de Sant Domènec 7, 08172 Sant Cugat del Vallès (Barcelona)"
+  },
+  {
+   "nombre": "Jordi Ferrer Vidal",
+   "email": "jferrervidal@correo.es",
+   "telefono": "619 447 205",
+   "direccion": "C/ de Sants 155, 3º 2ª, 08028 Barcelona"
+  },
+  {
+   "nombre": "Laura Martínez Roca",
+   "email": "lauramartinezroca@correo.es",
+   "telefono": "687 330 158",
+   "direccion": "Av. de la Diputació 88, 43850 Cambrils (Tarragona)"
+  },
+  {
+   "nombre": "Andreu Casals Pons",
+   "email": "andreu.casals@correo.es",
+   "telefono": "622 905 471",
+   "direccion": "Rambla Nova 101, 5º 1ª, 43001 Tarragona"
+  }
+ ],
+ "facturados": [
+  {
+   "cliente": 1,
+   "tipo": "transporte_montaje",
+   "transporte": 640.0,
+   "montaje": 1180.0,
+   "dias": 2,
+   "comentario": "Mobiliario de showroom, 2 plantas",
+   "meses_atras": 2,
+   "fraccion": 0.15,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 4,
+   "tipo": "transporte_montaje",
+   "transporte": 420.0,
+   "montaje": 865.5,
+   "dias": 1,
+   "comentario": "Sillones de gabinete y recepción",
+   "meses_atras": 2,
+   "fraccion": 0.4,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 9,
+   "tipo": "transporte",
+   "transporte": 285.0,
+   "montaje": null,
+   "dias": null,
+   "comentario": "Mudanza de piso a Sant Cugat, 3 dormitorios",
+   "meses_atras": 2,
+   "fraccion": 0.62,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 7,
+   "tipo": "transporte",
+   "transporte": 1340.0,
+   "montaje": null,
+   "dias": null,
+   "comentario": "Traslado de 18 estanterías industriales",
+   "meses_atras": 2,
+   "fraccion": 0.9,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 2,
+   "tipo": "transporte_montaje",
+   "transporte": 980.0,
+   "montaje": 2350.0,
+   "dias": 4,
+   "comentario": "Renovación mobiliario 24 habitaciones planta 3",
+   "meses_atras": 1,
+   "fraccion": 0.1,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 3,
+   "tipo": "transporte_montaje",
+   "transporte": 510.0,
+   "montaje": 1420.0,
+   "dias": 2,
+   "comentario": "Puestos de trabajo y mamparas zona B",
+   "meses_atras": 1,
+   "fraccion": 0.33,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 10,
+   "tipo": "transporte_montaje",
+   "transporte": 190.0,
+   "montaje": 240.0,
+   "dias": 1,
+   "comentario": "Cocina desmontada: transporte y montaje",
+   "meses_atras": 1,
+   "fraccion": 0.55,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 5,
+   "tipo": "transporte",
+   "transporte": 365.0,
+   "montaje": null,
+   "dias": null,
+   "comentario": "Cámara frigorífica y mesas de terraza",
+   "meses_atras": 1,
+   "fraccion": 0.78,
+   "cobro": "pendiente",
+   "emitida": 1
+  },
+  {
+   "cliente": 8,
+   "tipo": "transporte_montaje",
+   "transporte": 720.0,
+   "montaje": 655.0,
+   "dias": 1,
+   "comentario": "Montaje exposición temporal, peanas y vitrinas",
+   "meses_atras": 1,
+   "fraccion": 0.93,
+   "cobro": "pendiente",
+   "emitida": 1
+  },
+  {
+   "cliente": 6,
+   "tipo": "transporte_montaje",
+   "transporte": 330.0,
+   "montaje": 495.0,
+   "dias": 1,
+   "comentario": "Mobiliario aula de 2 años",
+   "meses_atras": 0,
+   "fraccion": 0.2,
+   "cobro": "cobrada",
+   "emitida": 1
+  },
+  {
+   "cliente": 11,
+   "tipo": "transporte",
+   "transporte": 245.0,
+   "montaje": null,
+   "dias": null,
+   "comentario": "Traslado de muebles a segunda residencia",
+   "meses_atras": 0,
+   "fraccion": 0.5,
+   "cobro": "pendiente",
+   "emitida": 1
+  },
+  {
+   "cliente": 12,
+   "tipo": "transporte_montaje",
+   "transporte": 210.0,
+   "montaje": 385.0,
+   "dias": 1,
+   "comentario": "Armario empotrado y dormitorio juvenil",
+   "meses_atras": 0,
+   "fraccion": 0.8,
+   "cobro": "pendiente",
+   "emitida": 1
+  },
+  {
+   "cliente": 3,
+   "tipo": "transporte_montaje",
+   "transporte": 460.0,
+   "montaje": 1234.55,
+   "dias": 2,
+   "comentario": "Sala de reuniones y 12 puestos nuevos",
+   "meses_atras": 0,
+   "fraccion": 0.6,
+   "cobro": "pendiente",
+   "emitida": 0
+  },
+  {
+   "cliente": 1,
+   "tipo": "transporte",
+   "transporte": 395.0,
+   "montaje": null,
+   "dias": null,
+   "comentario": "Recogida de muestras de proveedor en Mataró",
+   "meses_atras": 0,
+   "fraccion": 0.9,
+   "cobro": "pendiente",
+   "emitida": 0
+  },
+  {
+   "cliente": 7,
+   "tipo": "transporte_montaje",
+   "transporte": 890.0,
+   "montaje": 1560.0,
+   "dias": 3,
+   "comentario": "Altillo metálico y estanterías picking",
+   "meses_atras": 0,
+   "fraccion": 1.0,
+   "cobro": "pendiente",
+   "emitida": 0
+  }
+ ],
+ "otros_presupuestos": [
+  {
+   "cliente": 2,
+   "tipo": "transporte_montaje",
+   "transporte": 1150.0,
+   "montaje": 2890.0,
+   "dias": 4,
+   "estado": "pendiente",
+   "dias_atras": 6,
+   "comentario": "Mobiliario de terraza y 30 hamacas para temporada"
+  },
+  {
+   "cliente": 2,
+   "tipo": "transporte",
+   "transporte": 640.0,
+   "montaje": null,
+   "dias": null,
+   "estado": "rechazado",
+   "dias_atras": 52,
+   "comentario": "Traslado de colchones a almacén de Reus"
+  },
+  {
+   "cliente": 4,
+   "tipo": "transporte",
+   "transporte": 180.0,
+   "montaje": null,
+   "dias": null,
+   "estado": "pendiente",
+   "dias_atras": 3,
+   "comentario": "Sillón dental de reserva a almacén"
+  },
+  {
+   "cliente": 5,
+   "tipo": "transporte_montaje",
+   "transporte": 410.0,
+   "montaje": 720.0,
+   "dias": 2,
+   "estado": "pendiente",
+   "dias_atras": 9,
+   "comentario": "Barra y mobiliario de la nueva sala"
+  },
+  {
+   "cliente": 8,
+   "tipo": "transporte",
+   "transporte": 520.0,
+   "montaje": null,
+   "dias": null,
+   "estado": "rechazado",
+   "dias_atras": 70,
+   "comentario": "Obras para feria en Madrid (cliente buscó otra opción)"
+  },
+  {
+   "cliente": 9,
+   "tipo": "transporte_montaje",
+   "transporte": 150.0,
+   "montaje": 210.0,
+   "dias": 1,
+   "estado": "pendiente",
+   "dias_atras": 2,
+   "comentario": "Montaje de estanterías y escritorio"
+  },
+  {
+   "cliente": 10,
+   "tipo": "transporte",
+   "transporte": 260.0,
+   "montaje": null,
+   "dias": null,
+   "estado": "rechazado",
+   "dias_atras": 33,
+   "comentario": "Vaciado de trastero"
+  },
+  {
+   "cliente": 11,
+   "tipo": "transporte_montaje",
+   "transporte": 275.0,
+   "montaje": 340.0,
+   "dias": 1,
+   "estado": "aceptado",
+   "dias_atras": 4,
+   "comentario": "Dormitorio completo, servicio la semana que viene"
+  },
+  {
+   "cliente": 12,
+   "tipo": "transporte",
+   "transporte": 195.0,
+   "montaje": null,
+   "dias": null,
+   "estado": "pendiente",
+   "dias_atras": 12,
+   "comentario": "Piano vertical a 1ª planta sin ascensor"
+  },
+  {
+   "cliente": 6,
+   "tipo": "transporte_montaje",
+   "transporte": 280.0,
+   "montaje": 460.0,
+   "dias": 1,
+   "estado": "pendiente",
+   "dias_atras": 16,
+   "comentario": "Mobiliario del comedor"
+  }
+ ],
+ "comerciales": [
+  "Sergi",
+  "Núria",
+  "Pau"
+ ],
+ "peticiones": [
+  {
+   "comercial": 0,
+   "cliente": "Hotel Costa Daurada SA",
+   "descripcion": "Cambio de mobiliario del lobby y 2 sofás grandes",
+   "dias_desde_lunes": 0,
+   "dias_hasta_servicio": 21,
+   "presupuestada": 0
+  },
+  {
+   "comercial": 1,
+   "cliente": "Restaurante Can Roig SL",
+   "descripcion": "Transporte de cocina industrial desde Vilanova",
+   "dias_desde_lunes": 1,
+   "dias_hasta_servicio": 14,
+   "presupuestada": 0
+  },
+  {
+   "comercial": 2,
+   "cliente": "Marta Puig Soler",
+   "descripcion": "Montaje de armario PAX de 3 módulos",
+   "dias_desde_lunes": 2,
+   "dias_hasta_servicio": 10,
+   "presupuestada": 0
+  },
+  {
+   "comercial": 0,
+   "cliente": "Centro Médico Rambla SL",
+   "descripcion": "Traslado de consulta completa, sin montaje",
+   "dias_desde_lunes": 3,
+   "dias_hasta_servicio": 25,
+   "presupuestada": 0
+  },
+  {
+   "comercial": 1,
+   "cliente": "Oficinas Diagonal Coworking SL",
+   "descripcion": "Ampliación: 8 puestos más en planta 2",
+   "dias_desde_lunes": 1,
+   "dias_hasta_servicio": 30,
+   "presupuestada": 1
+  },
+  {
+   "comercial": 2,
+   "cliente": "Galería Arte Born SL",
+   "descripcion": "Retirada de la exposición y almacenaje",
+   "dias_desde_lunes": -4,
+   "dias_hasta_servicio": 12,
+   "presupuestada": 0
+  },
+  {
+   "comercial": 0,
+   "cliente": "Laura Martínez Roca",
+   "descripcion": "Dormitorio completo con montaje",
+   "dias_desde_lunes": -9,
+   "dias_hasta_servicio": -2,
+   "presupuestada": 1
+  },
+  {
+   "comercial": 1,
+   "cliente": "Logística Camp de Tarragona SL",
+   "descripcion": "Altillo metálico y estanterías de picking",
+   "dias_desde_lunes": -15,
+   "dias_hasta_servicio": -5,
+   "presupuestada": 1
+  }
+ ]
+}

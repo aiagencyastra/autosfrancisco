@@ -23,9 +23,28 @@ async function api(url, opciones = {}) {
     body: opciones.body ? JSON.stringify(opciones.body) : undefined,
   });
   const datos = await resp.json().catch(() => ({}));
+  if (resp.status === 401 && datos.requiere_clave) pedirContrasena();
   if (!resp.ok) throw new Error(datos.error || `Error ${resp.status}`);
   return datos;
 }
+
+// Versión online: la demo puede estar protegida con contraseña
+function pedirContrasena() {
+  $("#capa-entrar").hidden = false;
+  $("#entrar-clave").focus();
+}
+
+$("#form-entrar").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("#entrar-error").hidden = true;
+  try {
+    await api("/api/entrar", { method: "POST", body: { clave: $("#entrar-clave").value } });
+    location.reload();
+  } catch (err) {
+    $("#entrar-error").textContent = err.message;
+    $("#entrar-error").hidden = false;
+  }
+});
 
 function toast(texto) {
   const t = $("#toast");
@@ -88,7 +107,17 @@ async function preguntar(texto) {
   escribiendo.querySelector(".hora").remove();
 
   try {
-    const datos = await api("/api/chat", { method: "POST", body: { historial } });
+    // El servidor puede responder por pasos (en Netlify cada llamada tiene pocos segundos):
+    // mientras diga "continuar", se le devuelve el estado y se muestra qué está consultando.
+    let datos = await api("/api/chat", { method: "POST", body: { historial } });
+    const consultas = [...(datos.consultas || [])];
+    for (let i = 0; datos.continuar && i < 10; i++) {
+      marcarHerramientas([...new Set(consultas)]);
+      $("#chat-estado").textContent = "consultando " + (NOMBRES_HERRAMIENTAS[consultas.at(-1)] || "la base") + "…";
+      datos = await api("/api/chat", { method: "POST", body: { historial, estado: datos.estado } });
+      consultas.push(...(datos.consultas || []));
+    }
+    datos.consultas = consultas;
     escribiendo.remove();
     anadirBurbuja(formatoWhatsapp(datos.texto), "entrante");
     historial.push({ rol: "asistente", texto: datos.texto });
@@ -125,6 +154,7 @@ $("#formulario").addEventListener("submit", (e) => {
 
 async function cargarConfig() {
   const cfg = await api("/api/config");
+  if (cfg.requiere_clave && !cfg.autorizado) pedirContrasena();
   const caja = $("#sugerencias");
   cfg.preguntas.forEach((p) => {
     const b = document.createElement("button");
@@ -298,5 +328,5 @@ $("#reiniciar").addEventListener("click", async () => {
   cargarFacturas();
 });
 
-cargarConfig();
-cargarFacturas();
+cargarConfig().catch(() => {});
+cargarFacturas().catch(() => {}); // sin contraseña todavía: se carga al entrar

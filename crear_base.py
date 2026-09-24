@@ -7,6 +7,7 @@ Las fechas se calculan respecto al día de hoy para que "este mes" y
     python crear_base.py --forzar   # la regenera siempre
 """
 import calendar
+import json
 import sqlite3
 import sys
 from datetime import date, timedelta
@@ -54,71 +55,24 @@ CREATE TABLE peticiones (
 );
 """
 
-CLIENTES = [
-    # nombre, email, telefono, direccion
-    ("Interiorismo Blau SL", "administracion@interiorismoblau.es", "932 145 870", "C/ de Provença 214, 08036 Barcelona"),
-    ("Hotel Costa Daurada SA", "compras@hotelcostadaurada.es", "977 381 225", "Passeig de Jaume I 32, 43840 Salou (Tarragona)"),
-    ("Oficinas Diagonal Coworking SL", "facturas@diagonalcowork.es", "934 102 336", "Av. Diagonal 480, 08006 Barcelona"),
-    ("Clínica Dental Sant Gervasi SLP", "gestion@dentalsantgervasi.es", "932 117 904", "C/ de Muntaner 390, 08021 Barcelona"),
-    ("Restaurante El Serrallo SL", "info@restaurantserrallo.es", "977 240 518", "Moll de Pescadors 12, 43004 Tarragona"),
-    ("Escola Bressol Els Pins SCCL", "direccio@bressolelspins.cat", "977 315 662", "C/ de Sant Joan 18, 43201 Reus (Tarragona)"),
-    ("Logística Camp de Tarragona SL", "operaciones@logisticacamp.es", "977 552 190", "Pol. Ind. Riu Clar, C/ del Coure 5, 43006 Tarragona"),
-    ("Galería Arte Born SL", "hola@galeriaborn.es", "933 196 427", "C/ del Rec 44, 08003 Barcelona"),
-    ("Marta Puig Soler", "marta.puig.soler@correo.es", "654 218 903", "C/ de Sant Domènec 7, 08172 Sant Cugat del Vallès (Barcelona)"),
-    ("Jordi Ferrer Vidal", "jferrervidal@correo.es", "619 447 205", "C/ de Sants 155, 3º 2ª, 08028 Barcelona"),
-    ("Laura Martínez Roca", "lauramartinezroca@correo.es", "687 330 158", "Av. de la Diputació 88, 43850 Cambrils (Tarragona)"),
-    ("Andreu Casals Pons", "andreu.casals@correo.es", "622 905 471", "Rambla Nova 101, 5º 1ª, 43001 Tarragona"),
-]
+# Los datos de ejemplo están en datos_ejemplo.json (los usa también la versión web en Netlify)
+_DATOS = json.loads((Path(__file__).resolve().parent / "datos_ejemplo.json").read_text(encoding="utf-8"))
 
-# Presupuestos aceptados que tienen factura.
-# (cliente, tipo, transporte, montaje, dias, comentario, mes (0=actual, 1=anterior...),
-#  fracción del mes para la factura, estado de cobro, emitida)
-FACTURADOS = [
-    (1, "transporte_montaje", 640.00, 1180.00, 2, "Mobiliario de showroom, 2 plantas", 2, 0.15, "cobrada", 1),
-    (4, "transporte_montaje", 420.00, 865.50, 1, "Sillones de gabinete y recepción", 2, 0.40, "cobrada", 1),
-    (9, "transporte", 285.00, None, None, "Mudanza de piso a Sant Cugat, 3 dormitorios", 2, 0.62, "cobrada", 1),
-    (7, "transporte", 1340.00, None, None, "Traslado de 18 estanterías industriales", 2, 0.90, "cobrada", 1),
-    (2, "transporte_montaje", 980.00, 2350.00, 4, "Renovación mobiliario 24 habitaciones planta 3", 1, 0.10, "cobrada", 1),
-    (3, "transporte_montaje", 510.00, 1420.00, 2, "Puestos de trabajo y mamparas zona B", 1, 0.33, "cobrada", 1),
-    (10, "transporte_montaje", 190.00, 240.00, 1, "Cocina desmontada: transporte y montaje", 1, 0.55, "cobrada", 1),
-    (5, "transporte", 365.00, None, None, "Cámara frigorífica y mesas de terraza", 1, 0.78, "pendiente", 1),
-    (8, "transporte_montaje", 720.00, 655.00, 1, "Montaje exposición temporal, peanas y vitrinas", 1, 0.93, "pendiente", 1),
-    (6, "transporte_montaje", 330.00, 495.00, 1, "Mobiliario aula de 2 años", 0, 0.20, "cobrada", 1),
-    (11, "transporte", 245.00, None, None, "Traslado de muebles a segunda residencia", 0, 0.50, "pendiente", 1),
-    (12, "transporte_montaje", 210.00, 385.00, 1, "Armario empotrado y dormitorio juvenil", 0, 0.80, "pendiente", 1),
-    # Aceptadas y sin emitir todavía
-    (3, "transporte_montaje", 460.00, 1234.55, 2, "Sala de reuniones y 12 puestos nuevos", 0, 0.60, "pendiente", 0),
-    (1, "transporte", 395.00, None, None, "Recogida de muestras de proveedor en Mataró", 0, 0.90, "pendiente", 0),
-    (7, "transporte_montaje", 890.00, 1560.00, 3, "Altillo metálico y estanterías picking", 0, 1.00, "pendiente", 0),
-]
+CLIENTES = [(c["nombre"], c["email"], c["telefono"], c["direccion"]) for c in _DATOS["clientes"]]
 
-# Resto de presupuestos: (cliente, tipo, transporte, montaje, dias, estado, días atrás, comentario)
-OTROS_PRESUPUESTOS = [
-    (2, "transporte_montaje", 1150.00, 2890.00, 4, "pendiente", 6, "Mobiliario de terraza y 30 hamacas para temporada"),
-    (2, "transporte", 640.00, None, None, "rechazado", 52, "Traslado de colchones a almacén de Reus"),
-    (4, "transporte", 180.00, None, None, "pendiente", 3, "Sillón dental de reserva a almacén"),
-    (5, "transporte_montaje", 410.00, 720.00, 2, "pendiente", 9, "Barra y mobiliario de la nueva sala"),
-    (8, "transporte", 520.00, None, None, "rechazado", 70, "Obras para feria en Madrid (cliente buscó otra opción)"),
-    (9, "transporte_montaje", 150.00, 210.00, 1, "pendiente", 2, "Montaje de estanterías y escritorio"),
-    (10, "transporte", 260.00, None, None, "rechazado", 33, "Vaciado de trastero"),
-    (11, "transporte_montaje", 275.00, 340.00, 1, "aceptado", 4, "Dormitorio completo, servicio la semana que viene"),
-    (12, "transporte", 195.00, None, None, "pendiente", 12, "Piano vertical a 1ª planta sin ascensor"),
-    (6, "transporte_montaje", 280.00, 460.00, 1, "pendiente", 16, "Mobiliario del comedor"),
-]
+# Presupuestos aceptados que tienen factura: meses_atras (0 = mes actual), fracción del mes
+# para la fecha de la factura, estado de cobro y si está emitida
+FACTURADOS = [(f["cliente"], f["tipo"], f["transporte"], f["montaje"], f["dias"], f["comentario"],
+               f["meses_atras"], f["fraccion"], f["cobro"], f["emitida"]) for f in _DATOS["facturados"]]
 
-COMERCIALES = ["Sergi", "Núria", "Pau"]
+OTROS_PRESUPUESTOS = [(p["cliente"], p["tipo"], p["transporte"], p["montaje"], p["dias"], p["estado"],
+                       p["dias_atras"], p["comentario"]) for p in _DATOS["otros_presupuestos"]]
 
-PETICIONES = [
-    # comercial, cliente, descripción, días desde el lunes de esta semana, días hasta el servicio, presupuestada
-    (0, "Hotel Costa Daurada SA", "Cambio de mobiliario del lobby y 2 sofás grandes", 0, 21, 0),
-    (1, "Restaurante Can Roig SL", "Transporte de cocina industrial desde Vilanova", 1, 14, 0),
-    (2, "Marta Puig Soler", "Montaje de armario PAX de 3 módulos", 2, 10, 0),
-    (0, "Centro Médico Rambla SL", "Traslado de consulta completa, sin montaje", 3, 25, 0),
-    (1, "Oficinas Diagonal Coworking SL", "Ampliación: 8 puestos más en planta 2", 1, 30, 1),
-    (2, "Galería Arte Born SL", "Retirada de la exposición y almacenaje", -4, 12, 0),
-    (0, "Laura Martínez Roca", "Dormitorio completo con montaje", -9, -2, 1),
-    (1, "Logística Camp de Tarragona SL", "Altillo metálico y estanterías de picking", -15, -5, 1),
-]
+COMERCIALES = _DATOS["comerciales"]
+
+# dias_desde_lunes: respecto al lunes de esta semana (negativo = semanas anteriores)
+PETICIONES = [(p["comercial"], p["cliente"], p["descripcion"], p["dias_desde_lunes"],
+               p["dias_hasta_servicio"], p["presupuestada"]) for p in _DATOS["peticiones"]]
 
 
 def restar_meses(hoy: date, meses: int) -> date:
