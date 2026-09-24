@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Montelier · Demo</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%2312355B'/><text x='16' y='22' font-family='Arial' font-weight='700' font-size='17' fill='white' text-anchor='middle'>M</text></svg>">
+  <link rel="stylesheet" href="/static/estilos.css">
+</head>
+<body>
+  <header class="barra">
+    <div class="marca">
+      <span class="logo">MONTELIER</span>
+      <span class="subtitulo">Transporte y montaje · demo de propuesta</span>
+    </div>
+    <nav class="pestanas" role="tablist">
+      <button class="pestana activa" data-pestana="asistente" role="tab">Asistente</button>
+      <button class="pestana" data-pestana="facturas" role="tab">Facturas <span id="contador-facturas" class="contador"></span></button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ============================ ASISTENTE ============================ -->
+    <section id="asistente" class="panel activo">
+      <div class="chat-marco">
+        <div class="chat">
+          <div class="chat-cabecera">
+            <div class="avatar">M</div>
+            <div>
+              <div class="chat-nombre">Asistente Montelier</div>
+              <div class="chat-estado" id="chat-estado">en línea</div>
+            </div>
+          </div>
+          <div class="chat-mensajes" id="mensajes">
+            <div class="fecha-chip">Hoy</div>
+            <div class="burbuja entrante">
+              ¡Hola, Francisco! Pregúntame lo que quieras sobre presupuestos, facturas o peticiones.
+              Solo te contesto con lo que hay en la base de datos.
+              <span class="hora" data-hora-ahora></span>
+            </div>
+          </div>
+          <div class="sugerencias" id="sugerencias"></div>
+          <form class="chat-entrada" id="formulario">
+            <input id="entrada" autocomplete="off" placeholder="Escribe un mensaje" aria-label="Mensaje">
+            <button type="submit" class="enviar" aria-label="Enviar">
+              <svg viewBox="0 0 24 24" width="22" height="22"><path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <aside class="lateral">
+        <h2>Qué hay detrás</h2>
+        <p class="nota">Claude no se inventa nada: cada respuesta sale de una consulta a la base. Aquí se ve qué ha consultado.</p>
+        <ul class="herramientas" id="herramientas">
+          <li data-h="facturas_por_periodo"><b>Facturas por periodo</b><span>número, base, IVA y total</span></li>
+          <li data-h="facturas_pendientes_cobro"><b>Pendientes de cobro</b><span>facturas emitidas sin cobrar</span></li>
+          <li data-h="presupuestos_por_estado"><b>Presupuestos por estado</b><span>pendientes, aceptados, rechazados</span></li>
+          <li data-h="detalle_cliente"><b>Ficha de cliente</b><span>contacto, presupuestos y facturas</span></li>
+          <li data-h="peticiones_sin_presupuestar"><b>Peticiones sin presupuestar</b><span>lo que piden los comerciales</span></li>
+          <li data-h="consulta_sql"><b>Consulta libre</b><span>último recurso, solo lectura</span></li>
+        </ul>
+        <div class="garantias">
+          <div>🔒 Base abierta en <b>solo lectura</b></div>
+          <div>🧮 IVA 21% calculado por el sistema, no por la IA</div>
+          <div>🚫 Si no hay datos, lo dice</div>
+        </div>
+        <div class="aviso-clave" id="aviso-clave" hidden>
+          Falta la clave de Anthropic. Ponla en <code>.env</code> y reinicia.
+        </div>
+      </aside>
+    </section>
+
+    <!-- ============================ FACTURAS ============================ -->
+    <section id="facturas" class="panel">
+      <div class="facturas-rejilla">
+        <div class="columna-lista">
+          <h2>Aceptadas sin emitir</h2>
+          <div id="lista-pendientes" class="lista"></div>
+          <h2 class="separado">Emitidas en esta demo</h2>
+          <div id="lista-emitidas" class="lista"></div>
+          <button class="enlace" id="reiniciar">Reiniciar demo</button>
+        </div>
+
+        <div class="columna-detalle">
+          <div id="vista-previa" class="vista-previa vacia">
+            <p>Selecciona una factura para ver la vista previa.</p>
+          </div>
+          <div class="registro">
+            <h3>Registro de actividad</h3>
+            <ol id="registro"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Simulación del WhatsApp que recibe Francisco -->
+  <div class="capa" id="capa-whatsapp" hidden>
+    <div class="movil">
+      <div class="movil-notch"></div>
+      <div class="movil-cabecera">
+        <div class="avatar pequeno">M</div>
+        <div>
+          <div class="chat-nombre">Montelier Facturas</div>
+          <div class="chat-estado">WhatsApp de Francisco</div>
+        </div>
+      </div>
+      <div class="movil-chat">
+        <div class="fecha-chip">Ahora</div>
+        <div class="burbuja entrante" id="whatsapp-texto"></div>
+        <div class="botones-whatsapp">
+          <button id="whatsapp-si">Sí</button>
+          <button id="whatsapp-no">No</button>
+        </div>
+      </div>
+      <p class="movil-pie">Simulación: en producción este mensaje llegaría al móvil de Francisco.</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
