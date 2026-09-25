@@ -81,6 +81,12 @@ pendientes de cobro, presupuestos por estado, ficha de un cliente, peticiones si
 entre dos fechas y, como último recurso, una consulta SQL libre de solo lectura. Las
 herramientas devuelven los importes ya calculados y formateados, así que el modelo no hace cuentas.
 
+**Facturas desde el chat.** Francisco también puede emitir y enviar facturas desde el propio chat
+("¿qué facturas tengo por emitir?", "emite la de Oficinas Diagonal", "envíasela"). Claude solo
+puede *preparar* la emisión: aparece en el chat una tarjeta con base, IVA y total y los botones
+**Sí / No**, y la factura se emite únicamente cuando Francisco pulsa **Sí**. Luego llega el PDF
+al chat y se puede enviar al cliente (simulado). Chat y pestaña Facturas comparten el estado.
+
 **Pestaña Facturas.** No escribe en la base del cliente: lo que se emite o envía en la demo se
 guarda en `datos/estado_demo.json` y los PDF en `datos/pdfs/`. El botón "Reiniciar demo" lo
 deja todo como al principio.
@@ -121,13 +127,14 @@ de ejemplo a Claude de verdad y comprueban la cifra en la respuesta. Sin clave, 
 5. **(2:00) Pregunta 4 y una libre.** *¿Qué le hemos presupuestado a Hotel Costa Daurada?* y
    después pregunta por un cliente que no existe ("¿Y a Muebles Pérez?") para enseñar que dice
    que no hay datos. Si hay tiempo: "Borra la factura 3". Responde que solo puede consultar.
-6. **(3:00) Pestaña Facturas.** Enseña las 3 aceptadas sin emitir. Abre una: base, IVA 21 %,
-   total, datos del cliente y desglose transporte / montaje.
-7. **(3:30) Emitir.** Pulsa *Emitir factura* y aparece el WhatsApp a Francisco:
-   "Factura a …, … €. ¿La emito?". Pulsa **Sí**. "No sale nada sin que tú lo apruebes."
-8. **(4:00) PDF y envío.** *Ver PDF*: logo, desglose y el recuadro reservado para el QR
-   Verifactu del software de facturación. Vuelve y pulsa *Enviar al cliente*; enseña el
-   registro de actividad.
+6. **(3:00) Facturas en el mismo chat.** Pulsa *¿Qué facturas tengo pendientes de emitir?*
+   y después *Emite la factura de Oficinas Diagonal*. Aparece la tarjeta con transporte,
+   montaje, base, IVA 21 % y total: "Factura a …, … €. ¿La emito?".
+7. **(3:30) Aprobar.** Pulsa **Sí**. "Claude no puede emitir por su cuenta: solo cuando tú
+   dices que sí." Llega el PDF al chat: ábrelo y enseña el logo, el desglose y el recuadro
+   reservado para el QR Verifactu del software de facturación.
+8. **(4:00) Envío.** Pulsa *Enviar al cliente* (o escribe "envíasela"). Termina en la pestaña
+   **Facturas**: la factura aparece como emitida y enviada, con el registro de actividad.
 9. **(4:40) Cierre.** Qué falta para producción: acceso a su base real, WhatsApp real, datos
    fiscales e integración con su software de facturación para Verifactu.
 

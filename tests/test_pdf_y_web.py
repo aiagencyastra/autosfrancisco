@@ -104,4 +104,4 @@ def test_chat_sin_clave_da_mensaje_claro(web, monkeypatch):
 def test_portada_y_config(web):
     assert web.get("/").status_code == 200
     cfg = web.get("/api/config").get_json()
-    assert len(cfg["preguntas"]) == 4
+    assert len(cfg["preguntas"]) == 6

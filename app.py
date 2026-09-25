@@ -10,6 +10,7 @@ load_dotenv()
 
 import crear_base  # noqa: E402  (después de load_dotenv por si MONTELIER_BD viene del .env)
 from montelier import asistente, facturacion  # noqa: E402
+from montelier.acciones_chat import AccionesChat  # noqa: E402
 from montelier.db import RUTA_BD  # noqa: E402
 
 CLIENTE_EJEMPLO = "Hotel Costa Daurada"
@@ -18,6 +19,8 @@ PREGUNTAS = [
     "¿Qué facturas están pendientes de cobro?",
     "¿Me queda alguna petición por presupuestar esta semana?",
     f"¿Qué le hemos presupuestado a {CLIENTE_EJEMPLO}?",
+    "¿Qué facturas tengo pendientes de emitir?",
+    "Emite la factura de Oficinas Diagonal",
 ]
 
 app = Flask(__name__, static_folder="static", static_url_path="/static")
@@ -52,7 +55,7 @@ def chat():
         return jsonify(error="Falta la clave de Anthropic: ponla en ANTHROPIC_API_KEY dentro del "
                              "archivo .env y reinicia la demo."), 503
     try:
-        return jsonify(asistente.responder(historial[-20:]))
+        return jsonify(asistente.responder(historial[-20:], acciones=AccionesChat()))
     except anthropic.AuthenticationError:
         mensaje = "La clave de Anthropic no es válida. Revisa ANTHROPIC_API_KEY en el archivo .env."
     except anthropic.RateLimitError:

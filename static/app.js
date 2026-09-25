@@ -71,6 +71,9 @@ const NOMBRES_HERRAMIENTAS = {
   detalle_cliente: "ficha de cliente",
   peticiones_sin_presupuestar: "peticiones sin presupuestar",
   consulta_sql: "consulta libre (solo lectura)",
+  facturas_por_emitir: "facturas por emitir",
+  pedir_aprobacion_emision: "preparar emisión",
+  enviar_factura_cliente: "enviar al cliente",
 };
 const historial = [];
 let ocupado = false;
@@ -89,7 +92,8 @@ function anadirBurbuja(html, tipo) {
 }
 
 function marcarHerramientas(nombres) {
-  document.querySelectorAll("#herramientas li").forEach((li) => li.classList.toggle("usada", nombres.includes(li.dataset.h)));
+  document.querySelectorAll("#herramientas li").forEach((li) =>
+    li.classList.toggle("usada", li.dataset.h.split(" ").some((h) => nombres.includes(h))));
 }
 
 async function preguntar(texto) {
@@ -111,11 +115,13 @@ async function preguntar(texto) {
     // mientras diga "continuar", se le devuelve el estado y se muestra qué está consultando.
     let datos = await api("/api/chat", { method: "POST", body: { historial } });
     const consultas = [...(datos.consultas || [])];
+    const acciones = [...(datos.acciones || [])];
     for (let i = 0; datos.continuar && i < 10; i++) {
       marcarHerramientas([...new Set(consultas)]);
       $("#chat-estado").textContent = "consultando " + (NOMBRES_HERRAMIENTAS[consultas.at(-1)] || "la base") + "…";
       datos = await api("/api/chat", { method: "POST", body: { historial, estado: datos.estado } });
       consultas.push(...(datos.consultas || []));
+      acciones.push(...(datos.acciones || []));
     }
     datos.consultas = consultas;
     escribiendo.remove();
@@ -130,6 +136,7 @@ async function preguntar(texto) {
       $("#mensajes").appendChild(nota);
       $("#mensajes").scrollTop = $("#mensajes").scrollHeight;
     }
+    acciones.forEach(mostrarAccion);
   } catch (e) {
     escribiendo.remove();
     historial.pop(); // la pregunta sin respuesta no entra en el historial
@@ -140,6 +147,94 @@ async function preguntar(texto) {
     bloquearEntrada(false);
     $("#entrada").focus();
   }
+}
+
+// ------------------------------------------------------------------ facturas desde el chat
+const refFactura = (id) => "F-" + String(id).padStart(4, "0");
+
+function botonesChat(opciones) {
+  const caja = document.createElement("div");
+  caja.className = "botones-chat";
+  opciones.forEach(([texto, accion]) => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = texto;
+    b.addEventListener("click", () => {
+      caja.querySelectorAll("button").forEach((x) => (x.disabled = true));
+      b.classList.add("elegido");
+      accion();
+    });
+    caja.appendChild(b);
+  });
+  $("#mensajes").appendChild(caja);
+  $("#mensajes").scrollTop = $("#mensajes").scrollHeight;
+}
+
+function mostrarAccion(accion) {
+  if (accion.tipo === "aprobacion") tarjetaAprobacion(accion);
+  if (accion.tipo === "enviada") cargarFacturas().catch(() => {});
+}
+
+function tarjetaAprobacion({ factura: f, mensaje }) {
+  const i = f.importes;
+  const montaje = f.tiene_montaje
+    ? `<tr><td>Montaje${f.dias_montaje ? ` (${f.dias_montaje} día${f.dias_montaje === 1 ? "" : "s"})` : ""}</td><td>${i.montaje}</td></tr>`
+    : "";
+  anadirBurbuja(`
+    <div class="tarjeta-factura">
+      <div class="tf-titulo">🧾 ${refFactura(f.id)} · ${escapar(f.cliente.nombre)}</div>
+      <div class="tf-servicio">${escapar(f.servicio)} · ${escapar(f.descripcion)}</div>
+      <table>
+        <tr><td>Transporte</td><td>${i.transporte}</td></tr>${montaje}
+        <tr class="sub"><td>Base</td><td>${i.base}</td></tr>
+        <tr class="sub"><td>IVA 21%</td><td>${i.iva}</td></tr>
+        <tr class="total"><td>Total</td><td>${i.total}</td></tr>
+      </table>
+      <div class="tf-pregunta">${escapar(mensaje)}</div>
+    </div>`, "entrante con-tarjeta");
+  botonesChat([["Sí", () => aprobarDesdeChat(f, true)], ["No", () => aprobarDesdeChat(f, false)]]);
+}
+
+async function aprobarDesdeChat(f, aprobada) {
+  anadirBurbuja(aprobada ? "Sí" : "No", "saliente");
+  historial.push({ rol: "usuario", texto: aprobada ? "Sí" : "No" });
+  try {
+    const datos = await api(`/api/facturas/${f.id}/aprobar`, { method: "POST", body: { aprobada } });
+    if (!datos.emitida) {
+      const texto = `Vale, la factura a ${f.cliente.nombre} no se emite.`;
+      anadirBurbuja(escapar(texto), "entrante");
+      historial.push({ rol: "asistente", texto });
+    } else {
+      const texto = `Hecho: factura ${refFactura(f.id)} a ${f.cliente.nombre} emitida por ${f.importes.total}. ¿Se la envío al cliente?`;
+      anadirBurbuja(`
+        <a class="documento" href="${datos.pdf}" target="_blank" rel="noopener">
+          <span class="doc-icono">PDF</span>
+          <span><b>factura_${refFactura(f.id)}.pdf</b><small>Toca para abrir</small></span>
+        </a>${formatoWhatsapp(texto)}`, "entrante");
+      historial.push({ rol: "asistente", texto: `${texto} (PDF generado)` });
+      botonesChat([["Enviar al cliente", () => enviarDesdeChat(f)], ["Ahora no", () => {
+        historial.push({ rol: "usuario", texto: "Ahora no" });
+        anadirBurbuja("Ahora no", "saliente");
+      }]]);
+    }
+  } catch (e) {
+    anadirBurbuja("⚠️ " + escapar(e.message), "entrante error");
+  }
+  cargarFacturas().catch(() => {});
+}
+
+async function enviarDesdeChat(f) {
+  anadirBurbuja("Enviar al cliente", "saliente");
+  historial.push({ rol: "usuario", texto: "Envíasela al cliente" });
+  try {
+    const datos = await api(`/api/facturas/${f.id}/enviar`, { method: "POST" });
+    const texto = `Enviada a ${datos.email} con el PDF adjunto. (En la demo el envío es simulado: no sale ningún correo.)`;
+    anadirBurbuja("✉️ " + escapar(texto), "entrante");
+    historial.push({ rol: "asistente", texto });
+  } catch (e) {
+    anadirBurbuja("⚠️ " + escapar(e.message), "entrante error");
+  }
+  cargarFacturas().catch(() => {});
 }
 
 function bloquearEntrada(si) {

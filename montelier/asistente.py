@@ -5,7 +5,7 @@ from datetime import date, timedelta
 
 import anthropic
 
-from . import herramientas
+from . import acciones_chat, herramientas
 from .db import conectar
 
 MODELO = os.environ.get("MODELO", "claude-opus-5")
@@ -26,7 +26,10 @@ Reglas:
 Para resaltar usa *asteriscos*; para listas, líneas que empiecen por "• ". Nada de tablas ni títulos.
 - Usa consulta_sql solo si ninguna otra herramienta sirve. La base es de solo lectura: \
 si te piden cambiar datos, explica que desde aquí solo se puede consultar.
-- Si la pregunta es ambigua (por ejemplo, varios clientes con un nombre parecido), pregunta."""
+- Si la pregunta es ambigua (por ejemplo, varios clientes con un nombre parecido), pregunta.
+- Facturas: si Francisco quiere emitir una factura, localízala con facturas_por_emitir y llama a \
+pedir_aprobacion_emision. Tú nunca emites: se emite solo cuando él pulsa Sí en la tarjeta. \
+Si pide enviarla al cliente y ya está emitida, usa enviar_factura_cliente."""
 
 
 def contexto_fechas(hoy: date) -> str:
@@ -44,10 +47,11 @@ def _texto(contenido) -> str:
 
 
 def responder(historial: list[dict], cliente: anthropic.Anthropic | None = None,
-              hoy: date | None = None, ruta_bd=None) -> dict:
+              hoy: date | None = None, ruta_bd=None, acciones=None) -> dict:
     """historial: [{"rol": "usuario"|"asistente", "texto": "..."}], el último es la pregunta.
 
-    Devuelve {"texto": ..., "consultas": [nombres de herramientas usadas]}.
+    acciones: AccionesChat opcional (emitir y enviar facturas desde el chat).
+    Devuelve {"texto": ..., "consultas": [herramientas usadas], "acciones": [para la interfaz]}.
     """
     cliente = cliente or anthropic.Anthropic()
     hoy = hoy or date.today()
@@ -55,6 +59,8 @@ def responder(historial: list[dict], cliente: anthropic.Anthropic | None = None,
                 for m in historial if m.get("texto")]
     sistema = f"{INSTRUCCIONES}\n\n{contexto_fechas(hoy)}"
     consultas = []
+    acciones_ui = []
+    herramientas_api = herramientas.DEFINICIONES + (acciones_chat.DEFINICIONES if acciones else [])
     con = conectar(ruta_bd)
     try:
         for _ in range(MAX_VUELTAS):
@@ -62,7 +68,7 @@ def responder(historial: list[dict], cliente: anthropic.Anthropic | None = None,
                 model=MODELO,
                 max_tokens=16000,
                 system=sistema,
-                tools=herramientas.DEFINICIONES,
+                tools=herramientas_api,
                 messages=mensajes,
                 thinking={"type": "adaptive"},
                 output_config={"effort": "low"},
@@ -72,10 +78,10 @@ def responder(historial: list[dict], cliente: anthropic.Anthropic | None = None,
             )
             if respuesta.stop_reason == "refusal":
                 return {"texto": "No puedo responder a eso. Prueba a preguntarlo de otra forma.",
-                        "consultas": consultas}
+                        "consultas": consultas, "acciones": acciones_ui}
             if respuesta.stop_reason != "tool_use":
                 return {"texto": _texto(respuesta.content) or "No tengo respuesta para eso.",
-                        "consultas": consultas}
+                        "consultas": consultas, "acciones": acciones_ui}
 
             mensajes.append({"role": "assistant", "content": respuesta.content})
             resultados = []
@@ -84,7 +90,12 @@ def responder(historial: list[dict], cliente: anthropic.Anthropic | None = None,
                     continue
                 consultas.append(bloque.name)
                 try:
-                    datos = herramientas.ejecutar(con, bloque.name, bloque.input)
+                    if acciones and bloque.name in acciones_chat.NOMBRES:
+                        datos, accion = acciones.ejecutar(bloque.name, bloque.input)
+                        if accion:
+                            acciones_ui.append(accion)
+                    else:
+                        datos = herramientas.ejecutar(con, bloque.name, bloque.input)
                     resultados.append({"type": "tool_result", "tool_use_id": bloque.id,
                                        "content": json.dumps(_limpiar(datos), ensure_ascii=False)})
                 except herramientas.ErrorHerramienta as e:
@@ -92,7 +103,7 @@ def responder(historial: list[dict], cliente: anthropic.Anthropic | None = None,
                                        "content": f"Error: {e}", "is_error": True})
             mensajes.append({"role": "user", "content": resultados})
         return {"texto": "Me he liado con esta consulta. ¿Me la puedes preguntar de otra forma?",
-                "consultas": consultas}
+                "consultas": consultas, "acciones": acciones_ui}
     finally:
         con.close()
 

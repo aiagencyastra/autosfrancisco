@@ -220,3 +220,53 @@ test("chat por pasos con Claude simulado", async () => {
   const p2 = await (await pedir(api, "/chat", { metodo: "POST", cuerpo: { historial, estado: p1.estado } })).json();
   assert.equal(p2.texto, "Llevas 3 facturas: 2.014,65 € con IVA.");
 });
+
+// ---------------------------------------------------------------- facturas desde el chat
+async function chatCompleto(api, texto) {
+  const historial = [{ rol: "usuario", texto }];
+  let r = await (await pedir(api, "/chat", { metodo: "POST", cuerpo: { historial } })).json();
+  const acciones = [...(r.acciones || [])];
+  while (r.continuar) {
+    r = await (await pedir(api, "/chat", { metodo: "POST", cuerpo: { historial, estado: r.estado } })).json();
+    acciones.push(...(r.acciones || []));
+  }
+  return { ...r, acciones };
+}
+
+test("chat: Claude solo pide aprobación; se emite con el Sí y luego se envía", async () => {
+  process.env.ANTHROPIC_API_KEY ||= "prueba";
+  const antes = huella();
+  const cliente = claudeFalso([
+    [{ type: "tool_use", id: "a1", name: "facturas_por_emitir", input: {} }],
+    [{ type: "tool_use", id: "a2", name: "pedir_aprobacion_emision", input: { factura_id: 12 } }],
+    [{ type: "text", text: "Te la dejo aquí." }],
+    [{ type: "tool_use", id: "a3", name: "enviar_factura_cliente", input: { factura_id: 12 } }],
+    [{ type: "text", text: "Primero hay que emitirla." }],
+    [{ type: "tool_use", id: "a4", name: "enviar_factura_cliente", input: { factura_id: 12 } }],
+    [{ type: "text", text: "Enviada." }],
+  ]);
+  const api = crearApi({ almacen: almacenMemoria(), hoy: () => HOY, clienteClaude: () => cliente });
+
+  const r1 = await chatCompleto(api, "Emite la factura de Oficinas Diagonal");
+  assert.equal(r1.texto, "Te la dejo aquí.");
+  assert.equal(JSON.parse(cliente.peticiones[1].at(-1).content[0].content).pendientes_de_emitir.length, 3);
+  assert.equal(r1.acciones.length, 1);
+  assert.equal(r1.acciones[0].tipo, "aprobacion");
+  assert.equal(r1.acciones[0].mensaje, "Factura a Oficinas Diagonal Coworking SL, 2.050,41 €. ¿La emito?");
+  let f = await (await pedir(api, "/facturas")).json();
+  assert.equal(f.emitidas.length, 0); // sin el Sí no se emite
+
+  const r2 = await chatCompleto(api, "Envíasela");
+  assert.equal(r2.texto, "Primero hay que emitirla.");
+  const error = cliente.peticiones[4].at(-1).content[0];
+  assert.ok(error.is_error && error.content.includes("no está emitida"));
+
+  await pedir(api, "/facturas/12/aprobar", { metodo: "POST", cuerpo: { aprobada: true } }); // botón Sí
+  const r3 = await chatCompleto(api, "Envíasela");
+  assert.equal(r3.texto, "Enviada.");
+  assert.deepEqual(r3.acciones, [{ tipo: "enviada", factura_id: 12, email: "facturas@diagonalcowork.es" }]);
+  f = await (await pedir(api, "/facturas")).json();
+  assert.equal(f.emitidas[0].enviada_demo.email, "facturas@diagonalcowork.es");
+  assert.deepEqual(f.registro.map((x) => x.tipo), ["whatsapp", "ok", "envio"]);
+  assert.equal(huella(), antes);
+});

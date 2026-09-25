@@ -6,6 +6,7 @@ import { getStore } from "@netlify/blobs";
 import { hoyEspana, rutaBase } from "../lib/base.mjs";
 import { MAX_PASOS, MODELO, mensajesDesdeHistorial, paso } from "../lib/asistente.mjs";
 import { detalleFactura, facturasPorEmitir, generarPdf } from "../lib/factura.mjs";
+import { crearAcciones } from "../lib/acciones.mjs";
 
 const CLIENTE_EJEMPLO = "Hotel Costa Daurada";
 const PREGUNTAS = [
@@ -13,6 +14,8 @@ const PREGUNTAS = [
   "¿Qué facturas están pendientes de cobro?",
   "¿Me queda alguna petición por presupuestar esta semana?",
   `¿Qué le hemos presupuestado a ${CLIENTE_EJEMPLO}?`,
+  "¿Qué facturas tengo pendientes de emitir?",
+  "Emite la factura de Oficinas Diagonal",
 ];
 const MAX_ESTADO_CHAT = 300_000; // bytes
 
@@ -102,9 +105,11 @@ export function crearApi({ almacen, hoy = hoyEspana, clienteClaude = nuevoClient
       }
       if (pasos >= MAX_PASOS) return json({ texto: "Me he liado con esta consulta. ¿Me la puedes preguntar de otra forma?", consultas: [] });
       try {
-        const r = await paso(mensajes, { cliente: clienteClaude(), hoy: hoy(), ruta: baseDatos });
-        if (r.fin) return json({ texto: r.texto, consultas: [] });
-        return json({ continuar: true, consultas: r.consultas, estado: { mensajes: r.mensajes, pasos: pasos + 1 } });
+        const acciones = crearAcciones({ ruta: baseDatos, estadoDemo: { leer: leerEstado, registrar, hora } });
+        const r = await paso(mensajes, { cliente: clienteClaude(), hoy: hoy(), ruta: baseDatos, acciones });
+        if (r.fin) return json({ texto: r.texto, consultas: [], acciones: [] });
+        return json({ continuar: true, consultas: r.consultas, acciones: r.acciones,
+                      estado: { mensajes: r.mensajes, pasos: pasos + 1 } });
       } catch (e) {
         console.error("Error de la API de Anthropic:", e?.status, e?.message, e?.cause?.message);
         if (e instanceof Anthropic.AuthenticationError) return json({ error: "La clave de Anthropic no es válida." }, 502);

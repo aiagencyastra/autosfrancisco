@@ -21,7 +21,10 @@ Reglas:
 Para resaltar usa *asteriscos*; para listas, líneas que empiecen por "• ". Nada de tablas ni títulos.
 - Usa consulta_sql solo si ninguna otra herramienta sirve. La base es de solo lectura: \
 si te piden cambiar datos, explica que desde aquí solo se puede consultar.
-- Si la pregunta es ambigua (por ejemplo, varios clientes con un nombre parecido), pregunta.`;
+- Si la pregunta es ambigua (por ejemplo, varios clientes con un nombre parecido), pregunta.
+- Facturas: si Francisco quiere emitir una factura, localízala con facturas_por_emitir y llama a \
+pedir_aprobacion_emision. Tú nunca emites: se emite solo cuando él pulsa Sí en la tarjeta. \
+Si pide enviarla al cliente y ya está emitida, usa enviar_factura_cliente.`;
 
 export function contextoFechas(hoy) {
   const [anio, mes, dia] = hoy.split("-").map(Number);
@@ -39,13 +42,14 @@ export const mensajesDesdeHistorial = (historial) => historial.filter((m) => m &
 
 // Un paso de la conversación: una llamada a Claude y, si pide herramientas, su ejecución.
 // En Netlify cada función tiene pocos segundos, así que el navegador encadena los pasos.
-// Devuelve {fin: true, texto} o {fin: false, mensajes, consultas}.
-export async function paso(mensajes, { cliente = new Anthropic(), hoy = hoyEspana(), ruta } = {}) {
+// acciones (opcional): facturación desde el chat, ver acciones.mjs.
+// Devuelve {fin: true, texto} o {fin: false, mensajes, consultas, acciones}.
+export async function paso(mensajes, { cliente = new Anthropic(), hoy = hoyEspana(), ruta, acciones } = {}) {
   const respuesta = await cliente.beta.messages.create({
     model: MODELO,
     max_tokens: 16000,
     system: `${INSTRUCCIONES}\n\n${contextoFechas(hoy)}`,
-    tools: DEFINICIONES,
+    tools: acciones ? [...DEFINICIONES, ...acciones.definiciones] : DEFINICIONES,
     messages: mensajes,
     thinking: { type: "adaptive" },
     output_config: { effort: "low" },
@@ -60,6 +64,7 @@ export async function paso(mensajes, { cliente = new Anthropic(), hoy = hoyEspan
     return { fin: true, texto: texto(respuesta.content) || "No tengo respuesta para eso." };
   }
   const consultas = [];
+  const accionesUi = [];
   const resultados = [];
   const db = conectar(ruta);
   try {
@@ -67,7 +72,14 @@ export async function paso(mensajes, { cliente = new Anthropic(), hoy = hoyEspan
       if (bloque.type !== "tool_use") continue;
       consultas.push(bloque.name);
       try {
-        const datos = ejecutar(db, bloque.name, bloque.input);
+        let datos;
+        if (acciones?.nombres.has(bloque.name)) {
+          const [d, accion] = await acciones.ejecutar(bloque.name, bloque.input);
+          datos = d;
+          if (accion) accionesUi.push(accion);
+        } else {
+          datos = ejecutar(db, bloque.name, bloque.input);
+        }
         resultados.push({ type: "tool_result", tool_use_id: bloque.id, content: JSON.stringify(datos) });
       } catch (e) {
         if (!(e instanceof ErrorHerramienta)) throw e;
@@ -77,7 +89,7 @@ export async function paso(mensajes, { cliente = new Anthropic(), hoy = hoyEspan
   } finally {
     db.close();
   }
-  return { fin: false, consultas,
+  return { fin: false, consultas, acciones: accionesUi,
            mensajes: [...mensajes, { role: "assistant", content: respuesta.content }, { role: "user", content: resultados }] };
 }
 
@@ -87,10 +99,12 @@ export const MAX_PASOS = MAX_VUELTAS;
 export async function responder(historial, opciones = {}) {
   let mensajes = mensajesDesdeHistorial(historial);
   const consultas = [];
+  const acciones = [];
   for (let vuelta = 0; vuelta < MAX_VUELTAS; vuelta++) {
     const r = await paso(mensajes, opciones);
-    if (r.fin) return { texto: r.texto, consultas };
+    if (r.fin) return { texto: r.texto, consultas, acciones };
     consultas.push(...r.consultas);
+    acciones.push(...r.acciones);
     mensajes = r.mensajes;
   }
   return { texto: "Me he liado con esta consulta. ¿Me la puedes preguntar de otra forma?", consultas };
